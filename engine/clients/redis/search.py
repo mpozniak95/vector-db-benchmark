@@ -69,7 +69,7 @@ class RedisSearcher(BaseSearcher):
 
         q = (
             Query(
-                f"{prefilter_condition}=>[KNN $K @vector $vec_param {cls.knn_conditions} AS vector_score]"
+                f"{prefilter_condition}=>[KNN $K @content_vector $vec_param {cls.knn_conditions} AS vector_score]"
             )
             .sort_by("vector_score", asc=True)
             .paging(0, top)
@@ -89,5 +89,6 @@ class RedisSearcher(BaseSearcher):
         if cls.algorithm == "SVS":
             params_dict["WS_SEARCH"] = cls.search_params["search_params"]["WS_SEARCH"]
         results = cls._ft.search(q, query_params=params_dict)
-
-        return [(int(result.id), float(result.vector_score)) for result in results.docs]
+        #print(results)
+        return [(result.id, float(result.vector_score)) for result in results.docs]
+        #return [(int(result.id), float(result.vector_score)) for result in results.docs]
