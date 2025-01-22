@@ -32,6 +32,8 @@ class RedisSearcher(BaseSearcher):
         cls.algorithm = cls.search_params.get("algorithm", "hnsw").upper()
         if cls.algorithm == "HNSW":
             cls.knn_conditions = "EF_RUNTIME $EF"
+        elif cls.algorithm == "SVS":
+            cls.knn_conditions = "WS_SEARCH $WS_SEARCH"
         cls.data_type = "FLOAT32"
         if "search_params" in cls.search_params:
             cls.data_type = (
@@ -84,6 +86,8 @@ class RedisSearcher(BaseSearcher):
         }
         if cls.algorithm == "HNSW":
             params_dict["EF"] = cls.search_params["search_params"]["ef"]
+        if cls.algorithm == "SVS":
+            params_dict["WS_SEARCH"] = cls.search_params["search_params"]["WS_SEARCH"]
         results = cls._ft.search(q, query_params=params_dict)
 
         return [(int(result.id), float(result.vector_score)) for result in results.docs]
