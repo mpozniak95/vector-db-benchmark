@@ -1,10 +1,11 @@
 import json
 
 threads = [1]
-ws_constructs = [32]
-ws_search = [230, 240, 250, 260, 270, 280, 290, 300]
+ws_constructs = [100]
+ws_search = [16, 24, 32, 40, 48, 64, 128]
 graph_degree = [32]
-qantization = ["8"]
+qantization = ["0"]
+topKs = [10, 100]
 for algo in ["svs"]:
     configs = []
     for thread in threads:
@@ -27,12 +28,14 @@ for algo in ["svs"]:
                 }
                     for client in [1, 2, 4, 8]:
                         for ws_s in ws_search:
-                            test_config = {
-                                "algorithm": algo,
-                                "parallel": client,
-                                "search_params": {"WS_SEARCH": ws_s}
-                            }
-                            config["search_params"].append(test_config)
+                            for top in topKs:
+                                test_config = {
+                                    "algorithm": algo,
+                                    "parallel": client,
+                                    "top": top,
+                                    "search_params": {"WS_SEARCH": ws_s}
+                                }
+                                config["search_params"].append(test_config)
                     configs.append(config)
     fname = f"svs-test.json"
     with open(fname, "w") as json_fd:
