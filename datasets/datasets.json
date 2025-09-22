@@ -60,6 +60,16 @@
     "description": "Image embeddings"
   },
   {
+    "name": "laion-img-emb-512-9M-cosine",
+    "vector_size": 512,
+    "vector_count": 9000000,
+    "distance": "cosine",
+    "type": "h5",
+    "path": "laion-img-emb-512/laion-img-emb-512-9M-angular-test-1M.hdf5",
+    "link": "http://benchmarks.redislabs.s3.amazonaws.com/vecsim/laion400m/laion-img-emb-512-10M-cosine.hdf5",
+    "description": "Image embeddings"
+  },
+  {
     "name": "laion-img-emb-512-10M-cosine",
     "vector_size": 512,
     "vector_count": 10000000,
