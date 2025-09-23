@@ -174,7 +174,9 @@ class BaseSearcher:
             interval_pbar = None
         
         # Initialize global doc_id offset to ensure uniqueness across intervals
-        global_doc_id_offset = 0
+        # Start from a high offset to avoid conflicts with uploaded dataset doc_ids
+        # Most datasets have < 100M records, so starting from 100M should be safe
+        global_doc_id_offset = 100000000
         
         # Overall accumulators
         overall_results = []
