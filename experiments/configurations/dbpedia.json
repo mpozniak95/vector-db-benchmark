@@ -1,0 +1,62 @@
+[
+  {
+    "name": "dbpedia-hnsw-float16",
+    "engine": "redis",
+    "connection_params": {},
+    "collection_params": {
+      "algorithm": "hnsw",
+      "data_type": "FLOAT16",
+      "hnsw_config": {
+        "M": 16,
+        "DISTANCE_METRIC": "L2",
+        "EF_CONSTRUCTION": 200
+      }
+    },
+    "search_params": [
+      {
+        "parallel": 100,
+        "top": 100,
+        "search_params": {
+	  "ef": 199,
+          "data_type": "FLOAT16"
+        }
+      }
+    ],
+    "upload_params": {
+      "parallel": 100,
+      "algorithm": "hnsw",
+      "data_type": "FLOAT16"
+    }
+  },
+  {
+    "name": "dbpedia-svs-LVQ8-float16",
+    "engine": "redis",
+    "connection_params": {},
+    "collection_params": {
+      "algorithm": "svs-vamana",
+      "data_type": "FLOAT16",
+      "svs-vamana_config": {
+        "DISTANCE_METRIC": "L2",
+        "GRAPH_MAX_DEGREE": 32,
+        "CONSTRUCTION_WINDOW_SIZE": 200,
+        "compression": "LVQ8"
+      }
+    },
+    "search_params": [
+      {
+        "algorithm": "svs-vamana",
+        "parallel": 100,
+        "top": 100,
+        "search_params": {
+	  "SEARCH_WINDOW_SIZE": 130,
+          "data_type": "FLOAT16"
+        }
+      }
+    ],
+    "upload_params": {
+      "parallel": 100,
+      "data_type": "FLOAT16",
+      "algorithm": "svs-vamana"
+    }
+  }
+]
