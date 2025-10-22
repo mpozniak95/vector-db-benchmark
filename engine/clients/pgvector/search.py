@@ -25,16 +25,16 @@ class PgvectorSearcher(BaseSearcher):
         cls.cur = cls.conn.cursor()
         cls.distance = distance
         cls.search_params = search_params["search_params"]
-        cls.data_type = search_params.get("data_type", "FLOAT32")
+        cls.data_type = cls.search_params.get("data_type", "FLOAT32")
 
     @classmethod
     def search_one(cls, vector, meta_conditions, top) -> List[Tuple[int, float]]:
         cls.cur.execute(f"SET hnsw.ef_search = {cls.search_params['hnsw_ef']}")
         if cls.data_type == "FLOAT16":
             if cls.distance == Distance.COSINE:
-                query = f"SELECT id, embedding::halfvec(3) <=> %s AS _score FROM items ORDER BY _score LIMIT {top};"
+                query = f"SELECT id, embedding::halfvec <=> %s::halfvec AS _score FROM items ORDER BY _score LIMIT {top};"
             elif cls.distance == Distance.L2:
-                query = f"SELECT id, embedding::halfvec(3) <-> %s AS _score FROM items ORDER BY _score LIMIT {top};"
+                query = f"SELECT id, embedding::halfvec <-> %s::halfvec AS _score FROM items ORDER BY _score LIMIT {top};"
             else:
                 raise NotImplementedError(f"Unsupported distance metric {cls.distance}")
         else:  
@@ -44,10 +44,9 @@ class PgvectorSearcher(BaseSearcher):
                 query = f"SELECT id, embedding <-> %s AS _score FROM items ORDER BY _score LIMIT {top};"
             else:
                 raise NotImplementedError(f"Unsupported distance metric {cls.distance}")
-
         cls.cur.execute(
             query,
-            np.array(vector),
+            (np.array(vector),),
         )
         return cls.cur.fetchall()
 
