@@ -13,13 +13,17 @@ class PgvectorConfigurator(BaseConfigurator):
         Distance.L2: "vector_l2_ops",
         Distance.COSINE: "vector_cosine_ops",
     }
-
+    DISTANCE_MAPPING_FP16 = {
+        Distance.L2: "halfvec_l2_ops",
+        Distance.COSINE: "halfvec_cosine_ops",
+    }
     def __init__(self, host, collection_params: dict, connection_params: dict):
         super().__init__(host, collection_params, connection_params)
         self.conn = psycopg.connect(**get_db_config(host, connection_params))
         print("configure connection created")
         self.conn.execute("CREATE EXTENSION IF NOT EXISTS vector;")
         pgvector.psycopg.register_vector(self.conn)
+        self.data_type = collection_params.get("data_type", "FLOAT32")
 
     def clean(self):
         self.conn.execute(
@@ -29,25 +33,40 @@ class PgvectorConfigurator(BaseConfigurator):
     def recreate(self, dataset: Dataset, collection_params):
         if dataset.config.distance == Distance.DOT:
             raise IncompatibilityError
-
-        self.conn.execute(
-            f"""CREATE TABLE items (
-                id SERIAL PRIMARY KEY,
-                embedding vector({dataset.config.vector_size}) NOT NULL
-            );"""
-        )
+        if self.data_type == "FLOAT16":
+            self.conn.execute(
+                f"""CREATE TABLE items (
+                    id SERIAL PRIMARY KEY,
+                    embedding halfvec(3),
+                    embedding vector({dataset.config.vector_size}) NOT NULL
+                );"""
+            )
+        else:
+            self.conn.execute(
+                f"""CREATE TABLE items (
+                    id SERIAL PRIMARY KEY,
+                    embedding vector({dataset.config.vector_size}) NOT NULL
+                );"""
+            )
         self.conn.execute("ALTER TABLE items ALTER COLUMN embedding SET STORAGE PLAIN")
 
         try:
-            hnsw_distance_type = self.DISTANCE_MAPPING[dataset.config.distance]
+            if self.data_type == "FLOAT16":
+                hnsw_distance_type = self.DISTANCE_MAPPING_FP16[dataset.config.distance]
+            else:
+                hnsw_distance_type = self.DISTANCE_MAPPING[dataset.config.distance]
         except KeyError:
             raise IncompatibilityError(
                 f"Unsupported distance metric: {dataset.config.distance}"
             )
-
-        self.conn.execute(
-            f"CREATE INDEX on items USING hnsw(embedding {hnsw_distance_type}) WITH (m = {collection_params['hnsw_config']['m']}, ef_construction = {collection_params['hnsw_config']['ef_construct']})"
-        )
+        if self.data_type == "FLOAT16":
+            self.conn.execute(
+                f"CREATE INDEX on items USING hnsw(embedding::halfvec(3), embedding {hnsw_distance_type}) WITH (m = {collection_params['hnsw_config']['m']}, ef_construction = {collection_params['hnsw_config']['ef_construct']})"
+            )
+        else:
+            self.conn.execute(
+                f"CREATE INDEX on items USING hnsw(embedding {hnsw_distance_type}) WITH (m = {collection_params['hnsw_config']['m']}, ef_construction = {collection_params['hnsw_config']['ef_construct']})"
+            )
 
         self.conn.close()
 
