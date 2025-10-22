@@ -37,8 +37,7 @@ class PgvectorConfigurator(BaseConfigurator):
             self.conn.execute(
                 f"""CREATE TABLE items (
                     id SERIAL PRIMARY KEY,
-                    embedding halfvec(3),
-                    embedding vector({dataset.config.vector_size}) NOT NULL
+                    embedding halfvec({dataset.config.vector_size}) NOT NULL
                 );"""
             )
         else:
@@ -61,7 +60,7 @@ class PgvectorConfigurator(BaseConfigurator):
             )
         if self.data_type == "FLOAT16":
             self.conn.execute(
-                f"CREATE INDEX on items USING hnsw(embedding::halfvec(3), embedding {hnsw_distance_type}) WITH (m = {collection_params['hnsw_config']['m']}, ef_construction = {collection_params['hnsw_config']['ef_construct']})"
+                f"CREATE INDEX on items USING hnsw(embedding::halfvec {hnsw_distance_type}) WITH (m = {collection_params['hnsw_config']['m']}, ef_construction = {collection_params['hnsw_config']['ef_construct']})"
             )
         else:
             self.conn.execute(
