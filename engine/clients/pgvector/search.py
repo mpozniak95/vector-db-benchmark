@@ -39,7 +39,7 @@ class PgvectorSearcher(BaseSearcher):
 
         cls.cur.execute(
             query,
-            (np.array(vector),),
+            (np.array(vector).astype(np.float16),),
         )
         return cls.cur.fetchall()
 

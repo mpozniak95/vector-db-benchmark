@@ -35,9 +35,9 @@ class ElasticSearcher(BaseSearcher):
             **connection_params,
         }
         cls.client = get_es_client(host, connection_params)
-        cls.search_params = copy.deepcopy(search_params)
-        # pop parallel
-        cls.search_params.pop("parallel", "1")
+        if "search_params" in search_params:
+            cls.search_params["num_candidates"] = search_params["search_params"].get("num_candidates", 100)
+
 
     @classmethod
     def search_one(cls, vector, meta_conditions, top) -> List[Tuple[int, float]]:
@@ -45,7 +45,7 @@ class ElasticSearcher(BaseSearcher):
             "field": "vector",
             "query_vector": vector,
             "k": top,
-            **{"num_candidates": 100, **cls.search_params},
+            "num_candidates": cls.search_params.get("num_candidates", 100),
         }
 
         meta_conditions = cls.parser.parse(meta_conditions)

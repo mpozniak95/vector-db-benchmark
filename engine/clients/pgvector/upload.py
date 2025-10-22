@@ -24,7 +24,7 @@ class PgvectorUploader(BaseUploader):
     def upload_batch(
         cls, ids: List[int], vectors: List[list], metadata: Optional[List[dict]]
     ):
-        vectors = np.array(vectors)
+        vectors = np.array(vectors).astype(np.float16)
 
         # Copy is faster than insert
         with cls.cur.copy("COPY items (id, embedding) FROM STDIN") as copy:

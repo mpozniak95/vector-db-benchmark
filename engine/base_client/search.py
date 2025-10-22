@@ -85,7 +85,7 @@ class BaseSearcher:
         # Also, converts query vectors to bytes beforehand, preparing them for sending to client without affecting search time measurements
         queries_list = []
         for query in queries:
-            query.vector = np.array(query.vector).astype(data_type).tobytes()
+            query.vector = np.array(query.vector).astype(data_type)
             queries_list.append(query)
         
         # Handle MAX_QUERIES environment variable

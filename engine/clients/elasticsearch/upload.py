@@ -1,9 +1,12 @@
 import multiprocessing as mp
 import uuid
+import numpy as np
 from typing import List, Optional
 
 import elastic_transport
 from elasticsearch import Elasticsearch, ApiError
+
+from engine.base_client.utils import check_data_type
 
 from engine.base_client.upload import BaseUploader
 from engine.clients.elasticsearch.config import (
@@ -30,6 +33,7 @@ class ElasticUploader(BaseUploader):
     def init_client(cls, host, distance, connection_params, upload_params):
         cls.client = get_es_client(host, connection_params)
         cls.upload_params = upload_params
+        cls.data_type = check_data_type(upload_params.get("data_type", "FLOAT32"))
 
     @classmethod
     def upload_batch(
@@ -40,11 +44,12 @@ class ElasticUploader(BaseUploader):
         operations = []
         for idx, vector, payload in zip(ids, vectors, metadata):
             vector_id = uuid.UUID(int=idx).hex
+            vector_value = np.array(vector).astype(cls.data_type)
             operations.append({"index": {"_id": vector_id}})
             if payload:
-                operations.append({"vector": vector, **payload})
+                operations.append({"vector": vector_value, **payload})
             else:
-                operations.append({"vector": vector})
+                operations.append({"vector": vector_value})
 
         cls.client.bulk(
             index=ELASTIC_INDEX,

@@ -1,0 +1,150 @@
+[
+  {
+    "name": "dbpedia-cal-hnsw-float32-redis",
+    "engine": "redis",
+    "connection_params": {},
+    "collection_params": {
+      "algorithm": "hnsw",
+      "data_type": "FLOAT32",
+      "hnsw_config": {
+        "M": 10,
+        "EF_CONSTRUCTION": 50
+      }
+    },
+    "search_params": [
+      {
+        "parallel": 100,
+        "top": 100,
+        "calibration_param": "ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT32"
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 100,
+        "calibration_param": "ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT32"
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 100,
+        "calibration_param": "ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT32"
+        }
+      },
+      {
+        "parallel": 100,
+        "top": 100,
+        "calibration_param": "ef",
+        "calibration_precision": 0.90,
+        "search_params": {
+          "data_type": "FLOAT32"
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 100,
+        "calibration_param": "ef",
+        "calibration_precision": 0.90,
+        "search_params": {
+          "data_type": "FLOAT32"
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 100,
+        "calibration_param": "ef",
+        "calibration_precision": 0.90,
+        "search_params": {
+          "data_type": "FLOAT32"
+        }
+      }
+    ],
+    "upload_params": {
+      "parallel": 100,
+      "algorithm": "hnsw",
+      "data_type": "FLOAT32"
+    }
+  },
+  {
+    "name": "dbpedia-cal-hnsw-float16-redis",
+    "engine": "redis",
+    "connection_params": {},
+    "collection_params": {
+      "algorithm": "hnsw",
+      "data_type": "FLOAT16",
+      "hnsw_config": {
+        "M": 10,
+        "EF_CONSTRUCTION": 50
+      }
+    },
+    "search_params": [
+      {
+        "parallel": 100,
+        "top": 100,
+        "calibration_param": "ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 100,
+        "calibration_param": "ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 100,
+        "calibration_param": "ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 100,
+        "top": 100,
+        "calibration_param": "ef",
+        "calibration_precision": 0.90,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 100,
+        "calibration_param": "ef",
+        "calibration_precision": 0.90,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 100,
+        "calibration_param": "ef",
+        "calibration_precision": 0.90,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      }
+    ],
+    "upload_params": {
+      "parallel": 100,
+      "algorithm": "hnsw",
+      "data_type": "FLOAT16"
+    }
+  }
+]
