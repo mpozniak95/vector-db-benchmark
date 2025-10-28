@@ -49,6 +49,14 @@ class BaseSearcher:
         raise NotImplementedError()
 
     @classmethod
+    def wait_for_index_sync(cls, verbose=True):
+        """
+        Wait for inserted documents to be fully indexed.
+        Default implementation does nothing. Override in engine-specific clients.
+        """
+        pass
+
+    @classmethod
     def _search_one(cls, query, top: Optional[int] = None):
         if top is None:
             top = (
@@ -287,6 +295,14 @@ class BaseSearcher:
             overall_insert_latencies.extend(interval_insert_latencies)
             overall_search_latencies.extend(interval_search_latencies)
             
+            # Sync inserts to index if there were any inserts in this interval
+            if interval_insert_count > 0:
+                try:
+                    if hasattr(self.__class__, 'sync_inserts'):
+                        self.__class__.sync_inserts()
+                except Exception as e:
+                    print(f"Warning: Failed to sync inserts after interval {interval_counter}: {e}")
+            
             # Update global doc_id offset for next interval
             if parallel == 1:
                 # For single-threaded, reserve space based on actual inserts in this interval
@@ -354,6 +370,21 @@ class BaseSearcher:
         # Calculate search-only precisions (exclude inserts from precision calculation)
         search_precisions = [result[1] for result in results if result[0] == 'search']
 
+        # Create histogram distributions for latencies
+        def create_latency_histogram(latencies, num_bins=50):
+            """Create a histogram of latencies with counts and bin edges."""
+            if not latencies:
+                return {"counts": [], "bin_edges": []}
+            
+            hist, bin_edges = np.histogram(latencies, bins=num_bins)
+            return {
+                "counts": hist.tolist(),
+                "bin_edges": bin_edges.tolist()
+            }
+        
+        search_histogram = create_latency_histogram(all_search_latencies) if all_search_latencies else None
+        insert_histogram = create_latency_histogram(all_insert_latencies) if all_insert_latencies else None
+
         self.__class__.delete_client()
 
 
@@ -375,6 +406,7 @@ class BaseSearcher:
             "p50_search_time": np.percentile(all_search_latencies, 50) if all_search_latencies else 0,
             "p95_search_time": np.percentile(all_search_latencies, 95) if all_search_latencies else 0,
             "p99_search_time": np.percentile(all_search_latencies, 99) if all_search_latencies else 0,
+            "search_latency_histogram": search_histogram,
             
             # Insert metrics
             "insert_count": total_insert_count,
@@ -383,6 +415,7 @@ class BaseSearcher:
             "p50_insert_time": np.percentile(all_insert_latencies, 50) if all_insert_latencies else 0,
             "p95_insert_time": np.percentile(all_insert_latencies, 95) if all_insert_latencies else 0,
             "p99_insert_time": np.percentile(all_insert_latencies, 99) if all_insert_latencies else 0,
+            "insert_latency_histogram": insert_histogram,
             
             # Mixed workload metrics
             "actual_insert_fraction": total_insert_count / len(all_latencies) if len(all_latencies) > 0 else 0,

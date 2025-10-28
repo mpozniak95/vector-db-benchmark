@@ -151,3 +151,53 @@ class RedisSearcher(BaseSearcher):
                 print(f"ERROR: Redis hset did not create a new key for doc_id={doc_id}")
         except Exception as e:
             print(f"ERROR: Redis hset failed for doc_id={doc_id}: {e}")
+
+    @classmethod
+    def wait_for_index_sync(cls, verbose=True):
+        """
+        Wait for all inserted documents to be fully indexed.
+        Similar to post_upload but for mixed workload inserts.
+        """
+        import time
+        
+        if cls.client is None:
+            raise RuntimeError("Redis client not initialized")
+        
+        if cls.algorithm != "HNSW" and cls.algorithm != "FLAT" and cls.algorithm != "SVS-VAMANA":
+            if verbose:
+                print(f"Skipping index sync for {cls.algorithm} (not supported)")
+            return
+        
+        try:
+            index_info = cls._ft.info()
+            
+            # Handle RedisSearch / Memorystore for Redis
+            if "percent_indexed" in index_info:
+                percent_indexed = float(index_info["percent_indexed"])
+                if verbose and percent_indexed < 1.0:
+                    print(f"Waiting for index sync: {percent_indexed * 100:.1f}% indexed", flush=True)
+                
+                while percent_indexed < 1.0:
+                    time.sleep(0.1)  # Check more frequently than post_upload
+                    index_info = cls._ft.info()
+                    percent_indexed = float(index_info["percent_indexed"])
+                    if verbose:
+                        print(f"Index sync: {percent_indexed * 100:.1f}% indexed", flush=True)
+            
+            # Handle MemoryDB
+            if "current_lag" in index_info:
+                current_lag = float(index_info["current_lag"])
+                if verbose and current_lag > 0:
+                    print(f"Waiting for index sync: current_lag={current_lag}", flush=True)
+                
+                while current_lag > 0:
+                    time.sleep(0.1)  # Check more frequently than post_upload
+                    index_info = cls._ft.info()
+                    current_lag = float(index_info["current_lag"])
+                    if verbose:
+                        print(f"Index sync: current_lag={current_lag}", flush=True)
+        
+        except Exception as e:
+            if verbose:
+                print(f"Warning: Could not check index sync status: {e}")
+
