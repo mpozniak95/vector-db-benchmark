@@ -30,5 +30,6 @@ def get_opensearch_client(host, connection_params):
         basic_auth=(OPENSEARCH_USER, OPENSEARCH_PASSWORD),
         **init_params,
     )
+
     assert client.ping()
     return client

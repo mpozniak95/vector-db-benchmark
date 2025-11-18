@@ -59,7 +59,7 @@ class OpenSearchConfigurator(BaseConfigurator):
                             "method": {
                                 **{
                                     "name": "hnsw",
-                                    "engine": "lucene",
+                                    "engine": "faiss",
                                     "space_type": self.DISTANCE_MAPPING[
                                         dataset.config.distance
                                     ],

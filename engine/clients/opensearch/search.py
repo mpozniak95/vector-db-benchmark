@@ -26,7 +26,11 @@ class OpenSearchSearcher(BaseSearcher):
     @classmethod
     def init_client(cls, host, distance, connection_params: dict, search_params: dict):
         cls.client = get_opensearch_client(host, connection_params)
-        cls.search_params = search_params
+        if "search_params" in search_params:
+            cls.search_params = search_params["search_params"]
+            cls.search_params.pop("data_type", None)
+        else:
+            cls.search_params = search_params
 
     @classmethod
     def search_one(cls, vector, meta_conditions, top) -> List[Tuple[int, float]]:
