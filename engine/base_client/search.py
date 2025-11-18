@@ -370,20 +370,50 @@ class BaseSearcher:
         # Calculate search-only precisions (exclude inserts from precision calculation)
         search_precisions = [result[1] for result in results if result[0] == 'search']
 
-        # Create histogram distributions for latencies
-        def create_latency_histogram(latencies, num_bins=50):
-            """Create a histogram of latencies with counts and bin edges."""
-            if not latencies:
-                return {"counts": [], "bin_edges": []}
+        # Create histogram distributions for latencies with fixed bin ranges for cross-run comparison
+        def create_fixed_range_histograms(search_latencies, insert_latencies, num_bins=50):
+            """
+            Create histograms with fixed bin ranges that are consistent across all runs.
+            This allows comparing histograms across different datasets, algorithms, and configurations.
+            """
+            # Define fixed bin ranges (in seconds) that cover typical latency patterns
+            # These ranges are designed to capture:
+            # - Fast queries: 0-10ms (common for well-optimized systems)
+            # - Medium queries: 10-100ms (typical for complex queries)
+            # - Slow queries: 100ms-1s (degraded performance scenarios)
+            # - Very slow queries: 1s+ (outliers, timeouts, system issues)
             
-            hist, bin_edges = np.histogram(latencies, bins=num_bins)
-            return {
-                "counts": hist.tolist(),
-                "bin_edges": bin_edges.tolist()
-            }
+            # Use log-spaced bins to capture both fast and slow queries effectively
+            # Range: 1ms to 2 seconds (covers typical mixed workload latencies)
+            min_latency = 0.001  # 1ms
+            max_latency = 2.0    # 2 seconds
+            
+            # Create logarithmically-spaced bins for better distribution across orders of magnitude
+            common_bins = np.logspace(np.log10(min_latency), np.log10(max_latency), num_bins + 1)
+            
+            # Create histograms using the same fixed bin edges
+            search_histogram = None
+            if search_latencies:
+                hist, _ = np.histogram(search_latencies, bins=common_bins)
+                search_histogram = {
+                    "counts": hist.tolist(),
+                    "bin_edges": common_bins.tolist()
+                }
+            
+            insert_histogram = None
+            if insert_latencies:
+                hist, _ = np.histogram(insert_latencies, bins=common_bins)
+                insert_histogram = {
+                    "counts": hist.tolist(),
+                    "bin_edges": common_bins.tolist()
+                }
+            
+            return search_histogram, insert_histogram
         
-        search_histogram = create_latency_histogram(all_search_latencies) if all_search_latencies else None
-        insert_histogram = create_latency_histogram(all_insert_latencies) if all_insert_latencies else None
+        search_histogram, insert_histogram = create_fixed_range_histograms(
+            all_search_latencies if all_search_latencies else None,
+            all_insert_latencies if all_insert_latencies else None
+        )
 
         self.__class__.delete_client()
 
