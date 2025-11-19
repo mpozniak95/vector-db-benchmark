@@ -1,4 +1,5 @@
 import multiprocessing as mp
+import time
 import uuid
 from typing import List, Optional
 
@@ -57,4 +58,37 @@ class OpenSearchUploader(BaseUploader):
                 "timeout": 300,
             },
         )
+        
+        # Wait for index to reach green status
+        cls._wait_for_green_status()
+        
         return {}
+    
+    @classmethod
+    def _wait_for_green_status(cls, timeout=1200, check_interval=5):
+        """Wait for the index to reach green status (all shards are active)"""
+        print(f"Waiting for index '{OPENSEARCH_INDEX}' to reach green status...")
+        start_time = time.time()
+        
+        while time.time() - start_time < timeout:
+            try:
+                health = cls.client.cluster.health(
+                    index=OPENSEARCH_INDEX,
+                    wait_for_status="green",
+                    timeout=5
+                )
+                
+                status = health.get("status", "unknown")
+                print(f"Index status: {status}")
+                
+                if status == "green":
+                    print(f"Index '{OPENSEARCH_INDEX}' reached green status")
+                    return
+                    
+            except Exception as e:
+                print(f"Error checking cluster health: {e}")
+            
+            print(f"Index status not green yet, waiting {check_interval}s...")
+            time.sleep(check_interval)
+        
+        print(f"Warning: Index '{OPENSEARCH_INDEX}' did not reach green status within {timeout}s timeout")

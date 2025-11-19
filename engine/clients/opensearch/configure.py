@@ -48,6 +48,7 @@ class OpenSearchConfigurator(BaseConfigurator):
             body={
                 "settings": {
                     "index": {
+                        "number_of_replicas": 0,
                         "knn": True,
                     }
                 },
