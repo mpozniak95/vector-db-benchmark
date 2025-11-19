@@ -1,4 +1,4 @@
-from qdrant_client import QdrantClient
+from qdrant_client import QdrantClient, models
 from qdrant_client.http import models as rest
 
 from benchmark.dataset import Dataset
@@ -28,6 +28,11 @@ class QdrantConfigurator(BaseConfigurator):
 
     def __init__(self, host, collection_params: dict, connection_params: dict):
         super().__init__(host, collection_params, connection_params)
+        if self.collection_params.pop("data_type", None) == "FLOAT16":
+            self.data_type = models.Datatype.FLOAT16
+        else:
+            self.data_type = models.Datatype.FLOAT32
+        
         if QDRANT_URL is None:
             self.client = QdrantClient(
                 host=host, api_key=QDRANT_API_KEY, **connection_params
@@ -47,6 +52,7 @@ class QdrantConfigurator(BaseConfigurator):
             vectors_config=rest.VectorParams(
                 size=dataset.config.vector_size,
                 distance=self.DISTANCE_MAPPING.get(dataset.config.distance),
+                datatype=self.data_type,
             ),
             **self.collection_params
         )
@@ -54,7 +60,8 @@ class QdrantConfigurator(BaseConfigurator):
             collection_name=QDRANT_COLLECTION_NAME,
             optimizer_config=rest.OptimizersConfigDiff(
                 # indexing_threshold=10000000,
-                max_optimization_threads=0,
+                max_optimization_threads=10000,
+                default_segment_number=1
             ),
         )
         for field_name, field_type in dataset.config.schema.items():

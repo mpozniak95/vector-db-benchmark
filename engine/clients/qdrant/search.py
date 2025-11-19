@@ -42,6 +42,7 @@ class QdrantSearcher(BaseSearcher):
             )
 
         cls.search_params = search_params
+        cls.search_params["search_params"].pop("data_type", None)
 
     # Uncomment for gRPC
     # @classmethod

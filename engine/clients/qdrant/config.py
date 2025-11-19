@@ -58,7 +58,7 @@ def retry_with_exponential_backoff(
             delay = min(base_delay * 2**retries + random.uniform(0, 1), max_delay)
             time.sleep(delay)
             retries += 1
-            print(f"received the following exception on try #{retries}: {e.__str__}")
+            print(f"received the following exception on try #{retries}: {str(e)}")
             if retries == max_retries:
                 raise e
             else:

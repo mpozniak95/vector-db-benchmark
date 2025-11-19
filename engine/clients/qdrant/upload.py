@@ -64,6 +64,7 @@ class QdrantUploader(BaseUploader):
             collection_name=QDRANT_COLLECTION_NAME,
             optimizer_config=OptimizersConfigDiff(
                 # indexing_threshold=10_000,
+                default_segment_number=1,
                 max_optimization_threads=max_optimization_threads,
             ),
         )
