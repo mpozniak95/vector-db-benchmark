@@ -1394,5 +1394,15 @@
     "path": "cohere-768-9M/cohere-768-9M-1000000-testvectors.hdf5",
     "vector_count": 9000000,
     "description": "Wikipedia embeddings"
+  },
+  {
+    "name": "dbpedia-openai-900K-1536-angular",
+    "vector_size": 1536,
+    "distance": "cosine",
+    "type": "h5",
+    "path": "dbpedia-openai-900K-1536-angular/dbpedia-1536-900K-100K-testvectors.hdf5",
+    "link": "http://benchmarks.redislabs.s3.amazonaws.com/vecsim/laion400m/dbpedia_openai_1M.tgz",
+    "vector_count": 900000,
+    "description": "Knowledge embeddings"
   }
 ]
