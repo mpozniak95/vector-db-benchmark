@@ -38,7 +38,7 @@ class MilvusSearcher(BaseSearcher):
 
     @classmethod
     def search_one(cls, vector, meta_conditions, top) -> List[Tuple[int, float]]:
-        param = {"metric_type": cls.distance, "params": {"ef" : cls.search_params['search_params']['hnsw_ef']}}
+        param = {"metric_type": cls.distance, "params": cls.search_params['search_params']}
         try:
             res = cls.collection.search(
                 data=[np.array(vector).astype(cls.np_data_type)],

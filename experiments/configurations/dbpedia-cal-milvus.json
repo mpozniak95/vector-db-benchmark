@@ -3,17 +3,12 @@
     "name": "dbpedia-cal-milvus-hnsw-float32",
     "engine": "milvus",
     "connection_params": {},
-    "collection_params": {
-        "hnsw_config": {
-            "m": 10,
-            "ef_construct": 50
-        }
-    },
+    "collection_params": {},
     "search_params": [
       {
         "parallel": 1,
         "top": 100,
-        "calibration_param": "hnsw_ef",
+        "calibration_param": "ef",
         "calibration_precision": 0.9,
         "search_params": {
         }
@@ -21,7 +16,7 @@
       {
         "parallel": 10,
         "top": 100,
-        "calibration_param": "hnsw_ef",
+        "calibration_param": "ef",
         "calibration_precision": 0.9,
         "search_params": {
         }
@@ -29,7 +24,7 @@
       {
         "parallel": 100,
         "top": 100,
-        "calibration_param": "hnsw_ef",
+        "calibration_param": "ef",
         "calibration_precision": 0.9,
         "search_params": {
         }
@@ -37,7 +32,7 @@
       {
         "parallel": 1,
         "top": 100,
-        "calibration_param": "hnsw_ef",
+        "calibration_param": "ef",
         "calibration_precision": 0.95,
         "search_params": {
         }
@@ -45,7 +40,7 @@
       {
         "parallel": 10,
         "top": 100,
-        "calibration_param": "hnsw_ef",
+        "calibration_param": "ef",
         "calibration_precision": 0.95,
         "search_params": {
         }
@@ -53,30 +48,30 @@
       {
         "parallel": 100,
         "top": 100,
-        "calibration_param": "hnsw_ef",
+        "calibration_param": "ef",
         "calibration_precision": 0.95,
         "search_params": {
         }
       }
     ],
-    "upload_params": { "parallel": 32 }
+    "upload_params": {
+      "parallel": 32,
+      "index_params": {
+        "M": 10,
+        "efConstruction": 50
+      }
+    }
   },
   {
     "name": "dbpedia-cal-milvus-hnsw-float16",
     "engine": "milvus",
     "connection_params": {},
-    "collection_params": {
-        "hnsw_config": {
-            "m": 10,
-            "ef_construct": 50
-        },
-        "data_type": "FLOAT16"
-    },
+    "collection_params": {},
     "search_params": [
       {
         "parallel": 1,
         "top": 100,
-        "calibration_param": "hnsw_ef",
+        "calibration_param": "ef",
         "calibration_precision": 0.9,
         "search_params": {
           "data_type": "FLOAT16"
@@ -85,7 +80,7 @@
       {
         "parallel": 10,
         "top": 100,
-        "calibration_param": "hnsw_ef",
+        "calibration_param": "ef",
         "calibration_precision": 0.9,
         "search_params": {
           "data_type": "FLOAT16"
@@ -94,7 +89,7 @@
       {
         "parallel": 100,
         "top": 100,
-        "calibration_param": "hnsw_ef",
+        "calibration_param": "ef",
         "calibration_precision": 0.9,
         "search_params": {
           "data_type": "FLOAT16"
@@ -103,7 +98,7 @@
       {
         "parallel": 1,
         "top": 100,
-        "calibration_param": "hnsw_ef",
+        "calibration_param": "ef",
         "calibration_precision": 0.95,
         "search_params": {
           "data_type": "FLOAT16"
@@ -112,7 +107,7 @@
       {
         "parallel": 10,
         "top": 100,
-        "calibration_param": "hnsw_ef",
+        "calibration_param": "ef",
         "calibration_precision": 0.95,
         "search_params": {
           "data_type": "FLOAT16"
@@ -121,7 +116,7 @@
       {
         "parallel": 100,
         "top": 100,
-        "calibration_param": "hnsw_ef",
+        "calibration_param": "ef",
         "calibration_precision": 0.95,
         "search_params": {
           "data_type": "FLOAT16"
@@ -130,7 +125,11 @@
     ],
     "upload_params": {
       "parallel": 32,
-      "data_type": "FLOAT16"
+      "data_type": "FLOAT16",
+      "index_params": {
+        "M": 10,
+        "efConstruction": 50
+      }
     }
   }
 ]
