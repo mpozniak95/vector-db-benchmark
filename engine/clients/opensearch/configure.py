@@ -64,10 +64,6 @@ class OpenSearchConfigurator(BaseConfigurator):
                                     "space_type": self.DISTANCE_MAPPING[
                                         dataset.config.distance
                                     ],
-                                    "parameters": {
-                                        "m": 16,
-                                        "ef_construction": 100,
-                                    },
                                 },
                                 **collection_params.get("method"),
                             },

@@ -54,10 +54,10 @@ class OpenSearchUploader(BaseUploader):
     def post_upload(cls, _distance):
         cls.client.indices.forcemerge(
             index=OPENSEARCH_INDEX,
-            params={
-                "timeout": 300,
-            },
+            max_num_segments=1,
+            request_timeout=600,
         )
+        cls.client.indices.refresh(index=OPENSEARCH_INDEX)
         
         # Wait for index to reach green status
         cls._wait_for_green_status()

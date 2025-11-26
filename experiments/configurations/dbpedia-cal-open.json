@@ -28,51 +28,6 @@
             "search_params": {
                 "data_type": "FLOAT16"
             }
-        },
-        {
-            "parallel": 10,
-            "top": 100,
-            "calibration_param": "knn.algo_param.ef_search",
-            "calibration_precision": 0.95,
-            "search_params": {
-                "data_type": "FLOAT16"
-            }
-        },
-        {
-            "parallel": 1,
-            "top": 100,
-            "calibration_param": "knn.algo_param.ef_search",
-            "calibration_precision": 0.95,
-            "search_params": {
-                "data_type": "FLOAT16"
-            }
-        },
-        {
-            "parallel": 100,
-            "top": 100,
-            "calibration_param": "knn.algo_param.ef_search",
-            "calibration_precision": 0.9,
-            "search_params": {
-                "data_type": "FLOAT16"
-            }
-        },
-        {
-            "parallel": 10,
-            "top": 100,
-            "calibration_param": "knn.algo_param.ef_search",
-            "calibration_precision": 0.9,
-            "search_params": {
-                "data_type": "FLOAT16"
-            }
-        },
-        {
-            "parallel": 1,
-            "top": 100,
-            "calibration_param": "knn.algo_param.ef_search",
-            "calibration_precision": 0.9,
-            "search_params": {
-                "data_type": "FLOAT16"
-            }
         }
         ],
         "upload_params": {
@@ -87,61 +42,18 @@
         "collection_params": {
             "data_type": "FLOAT32",
             "method": {
-                    "m": 10,
-                    "ef_construction": 50
+                "parameters": {
+                    "m": 32,
+                    "ef_construction": 100
                 }
-            },
+            }
+        },
         "search_params": [
         {
             "parallel": 100,
             "top": 100,
             "calibration_param": "knn.algo_param.ef_search",
             "calibration_precision": 0.95,
-            "search_params": {
-                "data_type": "FLOAT32"
-            }
-        },
-        {
-            "parallel": 10,
-            "top": 100,
-            "calibration_param": "knn.algo_param.ef_search",
-            "calibration_precision": 0.95,
-            "search_params": {
-                "data_type": "FLOAT32"
-            }
-        },
-        {
-            "parallel": 1,
-            "top": 100,
-            "calibration_param": "knn.algo_param.ef_search",
-            "calibration_precision": 0.95,
-            "search_params": {
-                "data_type": "FLOAT32"
-            }
-        },
-        {
-            "parallel": 100,
-            "top": 100,
-            "calibration_param": "knn.algo_param.ef_search",
-            "calibration_precision": 0.9,
-            "search_params": {
-                "data_type": "FLOAT32"
-            }
-        },
-        {
-            "parallel": 10,
-            "top": 100,
-            "calibration_param": "knn.algo_param.ef_search",
-            "calibration_precision": 0.9,
-            "search_params": {
-                "data_type": "FLOAT32"
-            }
-        },
-        {
-            "parallel": 1,
-            "top": 100,
-            "calibration_param": "knn.algo_param.ef_search",
-            "calibration_precision": 0.9,
             "search_params": {
                 "data_type": "FLOAT32"
             }
