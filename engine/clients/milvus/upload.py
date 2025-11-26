@@ -2,6 +2,7 @@ import logging
 import multiprocessing as mp
 from typing import List, Optional
 import backoff
+import numpy as np
 
 from pymilvus import (
     Collection,
@@ -11,6 +12,7 @@ from pymilvus import (
 )
 
 from engine.base_client.upload import BaseUploader
+from engine.base_client.utils import check_data_type
 from engine.clients.milvus.config import (
     DISTANCE_MAPPING,
     DTYPE_DEFAULT,
@@ -35,6 +37,8 @@ class MilvusUploader(BaseUploader):
         cls.client = get_milvus_client(connection_params, host, MILVUS_DEFAULT_ALIAS)
         cls.collection = Collection(MILVUS_COLLECTION_NAME, using=MILVUS_DEFAULT_ALIAS)
         cls.upload_params = upload_params
+        cls.data_type = cls.upload_params.get("data_type", "FLOAT32").upper()
+        cls.np_data_type = check_data_type(cls.data_type)
         cls.distance = DISTANCE_MAPPING[distance]
 
     @classmethod
@@ -59,7 +63,7 @@ class MilvusUploader(BaseUploader):
         backoff.expo, MilvusException, max_time=600, backoff_log_level=logging.WARN
     )
     def upload_with_backoff(cls, field_values, ids, vectors):
-        cls.collection.insert([ids, vectors] + field_values)
+        cls.collection.insert([ids, np.array(vectors).astype(cls.np_data_type)] + field_values)
 
     @classmethod
     def post_upload(cls, distance):

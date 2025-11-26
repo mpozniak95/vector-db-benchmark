@@ -1,6 +1,6 @@
 import functools
 import time
-from multiprocessing import Process, Queue
+from multiprocessing import Process, Queue, get_context
 from typing import Iterable, List, Optional, Tuple
 from itertools import islice
 
@@ -159,13 +159,16 @@ class BaseSearcher:
                 # For lists, we can use the chunked_iterable function
                 query_chunks = list(chunked_iterable(used_queries, chunk_size))
 
+            # Get context allowed by db implementation
+            ctx = get_context(self.get_mp_start_method())
+
             # Create a queue to collect results
-            result_queue = Queue()
+            result_queue = ctx.Queue()
 
             # Create worker processes
             processes = []
             for chunk in query_chunks:
-                process = Process(target=worker_function, args=(self, distance, search_one, chunk, result_queue))
+                process = ctx.Process(target=worker_function, args=(self, distance, search_one, chunk, result_queue))
                 processes.append(process)
 
             # Start worker processes

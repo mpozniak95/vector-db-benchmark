@@ -1,9 +1,12 @@
 import multiprocessing as mp
+import numpy as np
+import os
 from typing import List, Tuple
 
 from pymilvus import Collection, connections
 
 from engine.base_client.search import BaseSearcher
+from engine.base_client.utils import check_data_type
 from engine.clients.milvus.config import (
     DISTANCE_MAPPING,
     MILVUS_COLLECTION_NAME,
@@ -25,6 +28,8 @@ class MilvusSearcher(BaseSearcher):
         cls.client = get_milvus_client(connection_params, host, MILVUS_DEFAULT_ALIAS)
         cls.collection = Collection(MILVUS_COLLECTION_NAME, using=MILVUS_DEFAULT_ALIAS)
         cls.search_params = search_params
+        cls.data_type = cls.search_params["search_params"].get('data_type', "FLOAT32").upper()
+        cls.np_data_type = check_data_type(cls.data_type)
         cls.distance = DISTANCE_MAPPING[distance]
 
     @classmethod
@@ -33,10 +38,10 @@ class MilvusSearcher(BaseSearcher):
 
     @classmethod
     def search_one(cls, vector, meta_conditions, top) -> List[Tuple[int, float]]:
-        param = {"metric_type": cls.distance, "params": cls.search_params["params"]}
+        param = {"metric_type": cls.distance, "params": {"ef" : cls.search_params['search_params']['hnsw_ef']}}
         try:
             res = cls.collection.search(
-                data=[vector],
+                data=[np.array(vector).astype(cls.np_data_type)],
                 anns_field="vector",
                 param=param,
                 limit=top,

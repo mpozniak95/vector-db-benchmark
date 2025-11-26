@@ -32,14 +32,18 @@ class MilvusConfigurator(BaseConfigurator):
 
     def __init__(self, host, collection_params: dict, connection_params: dict):
         super().__init__(host, collection_params, connection_params)
+        if self.collection_params.pop("data_type", None) == "FLOAT16":
+            self.data_type = DataType.FLOAT16_VECTOR
+        else:
+            self.data_type = DataType.FLOAT_VECTOR
         self.client = get_milvus_client(connection_params, host, MILVUS_DEFAULT_ALIAS)
         print("established connection")
 
     def clean(self):
         if utility.has_collection(MILVUS_COLLECTION_NAME, using=MILVUS_DEFAULT_ALIAS):
-            print("dropping collection named {MILVUS_COLLECTION_NAME}...")
+            print(f"dropping collection named {MILVUS_COLLECTION_NAME}...")
             utility.drop_collection(MILVUS_COLLECTION_NAME, using=MILVUS_DEFAULT_ALIAS)
-            print("dropped collection named {MILVUS_COLLECTION_NAME}...")
+            print(f"dropped collection named {MILVUS_COLLECTION_NAME}...")
         assert (
             utility.has_collection(MILVUS_COLLECTION_NAME, using=MILVUS_DEFAULT_ALIAS)
             is False
@@ -53,7 +57,7 @@ class MilvusConfigurator(BaseConfigurator):
         )
         vector = FieldSchema(
             name="vector",
-            dtype=DataType.FLOAT_VECTOR,
+            dtype=self.data_type,
             dim=dataset.config.vector_size,
         )
         fields = [idx, vector]
