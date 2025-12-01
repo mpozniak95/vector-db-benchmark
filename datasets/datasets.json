@@ -1387,6 +1387,15 @@
     "description": "Wikipedia embeddings"
   },
   {
+    "name": "cohere-768-900K-100K-testvectors-new",
+    "vector_size": 768,
+    "distance": "dot",
+    "type": "h5",
+    "path": "cohere-768-1M/cohere-768-900K-100K-testvectors-new.hdf5",
+    "vector_count": 900000,
+    "description": "Wikipedia embeddings"
+  },
+  {
     "name": "cohere-768-9M-1000000-testvectors",
     "vector_size": 768,
     "distance": "dot",
