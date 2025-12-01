@@ -250,5 +250,257 @@
       "parallel": 32,
       "data_type": "FLOAT16"
     }
+  },
+  {
+    "name": "dbpedia-cal-pgvector-hnsw-float16-m32-ef200",
+    "engine": "pgvector",
+    "connection_params": {},
+    "collection_params": {
+      "data_type": "FLOAT16",
+      "hnsw_config": {
+        "m": 32,
+        "ef_construct": 200
+      }
+    },
+    "search_params": [
+      {
+        "parallel": 100,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 100,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 100,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 100,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      }
+    ],
+    "upload_params": {
+      "parallel": 32,
+      "data_type": "FLOAT16"
+    }
+  },
+  {
+    "name": "dbpedia-cal-pgvector-hnsw-float32-m32-ef200",
+    "engine": "pgvector",
+    "connection_params": {},
+    "collection_params": {
+      "data_type": "FLOAT32",
+      "hnsw_config": {
+        "m": 32,
+        "ef_construct": 200
+      }
+    },
+    "search_params": [
+      {
+        "parallel": 100,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT32"
+        }
+      },
+      {
+        "parallel": 100,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+          "data_type": "FLOAT32"
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT32"
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+          "data_type": "FLOAT32"
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT32"
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+          "data_type": "FLOAT32"
+        }
+      },
+      {
+        "parallel": 100,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT32"
+        }
+      },
+      {
+        "parallel": 100,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+          "data_type": "FLOAT32"
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT32"
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+          "data_type": "FLOAT32"
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT32"
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+          "data_type": "FLOAT32"
+        }
+      }
+    ],
+    "upload_params": {
+      "parallel": 32,
+      "data_type": "FLOAT32"
+    }
   }
 ]
