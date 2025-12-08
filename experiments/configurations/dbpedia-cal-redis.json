@@ -200,7 +200,7 @@
         "calibration_param": "ef",
         "calibration_precision": 0.95,
         "search_params": {
-          "data_type": "FLOAT32"
+          "data_type": "FLOAT16"
         }
       },
       {
@@ -209,7 +209,7 @@
         "calibration_param": "ef",
         "calibration_precision": 0.95,
         "search_params": {
-          "data_type": "FLOAT32"
+          "data_type": "FLOAT16"
         }
       },
       {
@@ -218,7 +218,7 @@
         "calibration_param": "ef",
         "calibration_precision": 0.95,
         "search_params": {
-          "data_type": "FLOAT32"
+          "data_type": "FLOAT16"
         }
       },
       {
@@ -227,7 +227,7 @@
         "calibration_param": "ef",
         "calibration_precision": 0.90,
         "search_params": {
-          "data_type": "FLOAT32"
+          "data_type": "FLOAT16"
         }
       },
       {
@@ -236,7 +236,7 @@
         "calibration_param": "ef",
         "calibration_precision": 0.90,
         "search_params": {
-          "data_type": "FLOAT32"
+          "data_type": "FLOAT16"
         }
       },
       {
@@ -245,7 +245,7 @@
         "calibration_param": "ef",
         "calibration_precision": 0.90,
         "search_params": {
-          "data_type": "FLOAT32"
+          "data_type": "FLOAT16"
       }
     }
     ],
