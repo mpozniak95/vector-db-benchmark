@@ -45,7 +45,11 @@ class BaseSearcher:
         raise NotImplementedError()
 
     @classmethod
-    def insert_one(cls, doc_id: int, vector: List[float], meta_conditions):
+    def insert_one(cls, doc_id: str, vector: List[float], meta_conditions):
+        raise NotImplementedError()
+
+    @classmethod
+    def update_one(cls, doc_id: str, vector: List[float], meta_conditions):
         raise NotImplementedError()
 
     @classmethod
@@ -97,13 +101,54 @@ class BaseSearcher:
         # No precision metric for inserts, so precision=1.0
         return 1.0, end - start
 
+    @classmethod
+    def _update_one(cls, query, dataset_size):
+        """
+        Update an existing document with a new vector.
+        
+        Picks a random doc_id from [0, dataset_size-1] which corresponds to
+        the keys created during the initial upload (upload uses str(idx) as keys).
+        
+        Args:
+            query: Query object containing the vector to use for the update
+            dataset_size: Number of documents uploaded during initial load
+        """
+        start = time.perf_counter()
+
+        # Pick a random doc_id from the existing dataset
+        # Keys are created as str(0), str(1), ..., str(dataset_size-1) during upload
+        if dataset_size <= 0:
+            raise ValueError(
+                "dataset_size must be > 0 for updates. "
+                "Ensure the dataset config has 'vector_count' set, or check upload_end_idx."
+            )
+        doc_id = random.randint(0, dataset_size - 1)
+
+        cls.update_one(str(doc_id), query.vector, query.meta_conditions)
+        end = time.perf_counter()
+        # No precision metric for updates, so precision=1.0
+        return 1.0, end - start
+
     def search_all(
         self,
         distance,
         queries: Iterable[Query],
         num_queries: int = -1,
-        insert_fraction: float = 0.0,
+        modify_fraction: float = 0.0,
+        modify_operation: str = "insert",
+        dataset_size: int = 0,
     ):
+        """
+        Execute searches with optional concurrent modifications (inserts or updates).
+        
+        Args:
+            distance: Distance metric for the search
+            queries: Iterator of Query objects
+            num_queries: Number of queries to run (-1 for all)
+            modify_fraction: Fraction of operations that should be modifications (0.0-1.0)
+            modify_operation: Type of modification - "insert" or "update"
+            dataset_size: Size of the dataset (required for updates to pick valid IDs)
+        """
         parallel = self.search_params.get("parallel", 1)
         top = self.search_params.get("top", None)
         single_search_params = self.search_params.get("search_params", None)
@@ -122,6 +167,15 @@ class BaseSearcher:
 
         search_one = functools.partial(self.__class__._search_one, top=top)
         insert_one = functools.partial(self.__class__._insert_one)
+        update_one = functools.partial(self.__class__._update_one, dataset_size=dataset_size)
+        
+        # Select the modify operation function based on modify_operation parameter
+        if modify_operation == "update":
+            modify_one = update_one
+            modify_label = "update"
+        else:
+            modify_one = insert_one
+            modify_label = "insert"
 
         # Convert queries to a list for potential reuse
         # Also, converts query vectors to bytes beforehand, preparing them for sending to client without affecting search time measurements
@@ -188,9 +242,9 @@ class BaseSearcher:
         
         # Overall accumulators
         overall_results = []
-        overall_insert_count = 0
+        overall_modify_count = 0
         overall_search_count = 0
-        overall_insert_latencies = []
+        overall_modify_latencies = []
         overall_search_latencies = []
         
         # Interval statistics for output file
@@ -219,17 +273,17 @@ class BaseSearcher:
 
                 # Process queries for this interval
                 interval_results = []
-                interval_insert_count = 0
+                interval_modify_count = 0
                 interval_search_count = 0
-                interval_insert_latencies = []
+                interval_modify_latencies = []
                 interval_search_latencies = []
                 
                 for query in interval_queries:
-                    if random.random() < insert_fraction:
-                        precision, latency = insert_one(query)
-                        interval_insert_count += 1
-                        interval_insert_latencies.append(latency)
-                        interval_results.append(('insert', precision, latency))
+                    if random.random() < modify_fraction:
+                        precision, latency = modify_one(query)
+                        interval_modify_count += 1
+                        interval_modify_latencies.append(latency)
+                        interval_results.append((modify_label, precision, latency))
                     else:
                         precision, latency = search_one(query)
                         interval_search_count += 1
@@ -253,8 +307,8 @@ class BaseSearcher:
                 for i, chunk in enumerate(query_chunks):
                     # Calculate unique doc_id offset for this worker in this interval
                     worker_doc_id_offset = global_doc_id_offset + (i * 1000000)
-                    process = Process(target=worker_function, args=(self, distance, search_one, insert_one, 
-                                                                    chunk, result_queue, insert_fraction, worker_doc_id_offset))
+                    process = Process(target=worker_function, args=(self, distance, search_one, modify_one, 
+                                                                    chunk, result_queue, modify_fraction, modify_label, worker_doc_id_offset))
                     processes.append(process)
 
                 # Start worker processes
@@ -263,18 +317,18 @@ class BaseSearcher:
 
                 # Collect results from all worker processes
                 interval_results = []
-                interval_insert_count = 0
+                interval_modify_count = 0
                 interval_search_count = 0
-                interval_insert_latencies = []
+                interval_modify_latencies = []
                 interval_search_latencies = []
                 min_start_time = time.perf_counter()
 
                 for _ in processes:
-                    proc_start_time, chunk_results, insert_count, search_count, insert_latencies, search_latencies = result_queue.get()
+                    proc_start_time, chunk_results, modify_count, search_count, modify_latencies, search_latencies = result_queue.get()
                     interval_results.extend(chunk_results)
-                    interval_insert_count += insert_count
+                    interval_modify_count += modify_count
                     interval_search_count += search_count
-                    interval_insert_latencies.extend(insert_latencies)
+                    interval_modify_latencies.extend(modify_latencies)
                     interval_search_latencies.extend(search_latencies)
                     
                     # Update min_start_time if necessary
@@ -290,23 +344,23 @@ class BaseSearcher:
             
             # Accumulate overall results
             overall_results.extend(interval_results)
-            overall_insert_count += interval_insert_count
+            overall_modify_count += interval_modify_count
             overall_search_count += interval_search_count
-            overall_insert_latencies.extend(interval_insert_latencies)
+            overall_modify_latencies.extend(interval_modify_latencies)
             overall_search_latencies.extend(interval_search_latencies)
             
-            # Sync inserts to index if there were any inserts in this interval
-            if interval_insert_count > 0:
+            # Sync modifications to index if there were any in this interval
+            if interval_modify_count > 0:
                 try:
                     if hasattr(self.__class__, 'sync_inserts'):
                         self.__class__.sync_inserts()
                 except Exception as e:
-                    print(f"Warning: Failed to sync inserts after interval {interval_counter}: {e}")
+                    print(f"Warning: Failed to sync modifications after interval {interval_counter}: {e}")
             
             # Update global doc_id offset for next interval
             if parallel == 1:
-                # For single-threaded, reserve space based on actual inserts in this interval
-                global_doc_id_offset += max(1000000, interval_insert_count * 2)  # Some buffer
+                # For single-threaded, reserve space based on actual modifications in this interval
+                global_doc_id_offset += max(1000000, interval_modify_count * 2)  # Some buffer
             else:
                 # Reserve space for all parallel workers in this interval
                 global_doc_id_offset += parallel * 1000000
@@ -315,20 +369,21 @@ class BaseSearcher:
             if need_interval_reporting:
                 interval_search_precisions = [result[1] for result in interval_results if result[0] == 'search']
                 
-                # Calculate separate RPS for searches and inserts
+                # Calculate separate RPS for searches and modifications (inserts or updates)
                 search_rps = interval_search_count / interval_time if interval_search_count > 0 else 0
-                insert_rps = interval_insert_count / interval_time if interval_insert_count > 0 else 0
+                modify_rps = interval_modify_count / interval_time if interval_modify_count > 0 else 0
                 
                 # Create interval statistics for output file
+                # Use modify_label to name the field appropriately (insert_rps or update_rps)
                 interval_stat = {
                     "interval": interval_counter,
                     "operations": current_interval_size,
                     "time_seconds": float(interval_time),  # Ensure it's a float
                     "total_rps": float(current_interval_size / interval_time),  # Overall RPS
                     "search_rps": float(search_rps),  # Search-only RPS
-                    "insert_rps": float(insert_rps),  # Insert-only RPS
+                    f"{modify_label}_rps": float(modify_rps),  # Insert or Update RPS
                     "searches": interval_search_count,
-                    "inserts": interval_insert_count,
+                    f"{modify_label}s": interval_modify_count,  # inserts or updates count
                     "search_precision": float(np.mean(interval_search_precisions)) if interval_search_precisions else None
                 }
                 interval_stats.append(interval_stat)
@@ -337,14 +392,16 @@ class BaseSearcher:
                 print(f"DEBUG: Collected {len(interval_stats)} intervals so far", flush=True)
                 
                 # Update progress bar with separate RPS metrics
+                # Use capitalized modify_label for display
+                modify_label_cap = modify_label.capitalize()
                 if interval_pbar:
                     interval_pbar.update(1)
                     interval_pbar.set_postfix({
                         'Total_RPS': f"{current_interval_size / interval_time:.1f}",
                         'Search_RPS': f"{search_rps:.1f}",
-                        'Insert_RPS': f"{insert_rps:.1f}",
+                        f'{modify_label_cap}_RPS': f"{modify_rps:.1f}",
                         'Searches': interval_search_count,
-                        'Inserts': interval_insert_count,
+                        f'{modify_label_cap}s': interval_modify_count,
                         'Precision': f"{np.mean(interval_search_precisions):.4f}" if interval_search_precisions else "N/A"
                     })
         
@@ -358,9 +415,9 @@ class BaseSearcher:
         
         # Use overall accumulated results
         results = overall_results
-        total_insert_count = overall_insert_count
+        total_modify_count = overall_modify_count
         total_search_count = overall_search_count
-        all_insert_latencies = overall_insert_latencies
+        all_modify_latencies = overall_modify_latencies
         all_search_latencies = overall_search_latencies
 
         # Extract overall precisions and latencies
@@ -412,7 +469,7 @@ class BaseSearcher:
         
         search_histogram, insert_histogram = create_fixed_range_histograms(
             all_search_latencies if all_search_latencies else None,
-            all_insert_latencies if all_insert_latencies else None
+            all_modify_latencies if all_modify_latencies else None
         )
 
         self.__class__.delete_client()
@@ -438,18 +495,19 @@ class BaseSearcher:
             "p99_search_time": np.percentile(all_search_latencies, 99) if all_search_latencies else 0,
             "search_latency_histogram": search_histogram,
             
-            # Insert metrics
-            "insert_count": total_insert_count,
-            "insert_rps": total_insert_count / total_time if total_insert_count > 0 else 0,
-            "mean_insert_time": np.mean(all_insert_latencies) if all_insert_latencies else 0,
-            "p50_insert_time": np.percentile(all_insert_latencies, 50) if all_insert_latencies else 0,
-            "p95_insert_time": np.percentile(all_insert_latencies, 95) if all_insert_latencies else 0,
-            "p99_insert_time": np.percentile(all_insert_latencies, 99) if all_insert_latencies else 0,
+            # Insert/Update metrics (labeled as insert for backward compatibility)
+            "insert_count": total_modify_count,
+            "insert_rps": total_modify_count / total_time if total_modify_count > 0 else 0,
+            "mean_insert_time": np.mean(all_modify_latencies) if all_modify_latencies else 0,
+            "p50_insert_time": np.percentile(all_modify_latencies, 50) if all_modify_latencies else 0,
+            "p95_insert_time": np.percentile(all_modify_latencies, 95) if all_modify_latencies else 0,
+            "p99_insert_time": np.percentile(all_modify_latencies, 99) if all_modify_latencies else 0,
             "insert_latency_histogram": insert_histogram,
             
             # Mixed workload metrics
-            "actual_insert_fraction": total_insert_count / len(all_latencies) if len(all_latencies) > 0 else 0,
-            "target_insert_fraction": insert_fraction,
+            "actual_modify_fraction": total_modify_count / len(all_latencies) if len(all_latencies) > 0 else 0,
+            "target_modify_fraction": modify_fraction,
+            "modify_operation": modify_operation,
             
             # Interval statistics (only included if intervals were used)
             "interval_stats": interval_stats if interval_stats else None,
@@ -484,29 +542,29 @@ def chunked_iterable(iterable, size):
     while chunk := list(islice(it, size)):
         yield chunk
 
-def process_chunk(chunk, search_one, insert_one, insert_fraction):
+def process_chunk(chunk, search_one, modify_one, modify_fraction, modify_label):
     results = []
-    insert_count = 0
+    modify_count = 0
     search_count = 0
-    insert_latencies = []
+    modify_latencies = []
     search_latencies = []
     
     for i, query in enumerate(chunk):
-        if random.random() < insert_fraction:
-            precision, latency = insert_one(query)
-            insert_count += 1
-            insert_latencies.append(latency)
-            results.append(('insert', precision, latency))
+        if random.random() < modify_fraction:
+            precision, latency = modify_one(query)
+            modify_count += 1
+            modify_latencies.append(latency)
+            results.append((modify_label, precision, latency))
         else:
             precision, latency = search_one(query)
             search_count += 1
             search_latencies.append(latency)
             results.append(('search', precision, latency))
     
-    return results, insert_count, search_count, insert_latencies, search_latencies
+    return results, modify_count, search_count, modify_latencies, search_latencies
 
 # Function to be executed by each worker process
-def worker_function(self, distance, search_one, insert_one, chunk, result_queue, insert_fraction=0.0, doc_id_offset=0):
+def worker_function(self, distance, search_one, modify_one, chunk, result_queue, modify_fraction=0.0, modify_label="insert", doc_id_offset=0):
     self.init_client(
         self.host,
         distance,
@@ -519,7 +577,7 @@ def worker_function(self, distance, search_one, insert_one, chunk, result_queue,
     self.__class__._doc_id_counter = itertools.count(doc_id_offset)
 
     start_time = time.perf_counter()
-    results, insert_count, search_count, insert_latencies, search_latencies = process_chunk(
-        chunk, search_one, insert_one, insert_fraction
+    results, modify_count, search_count, modify_latencies, search_latencies = process_chunk(
+        chunk, search_one, modify_one, modify_fraction, modify_label
     )
-    result_queue.put((start_time, results, insert_count, search_count, insert_latencies, search_latencies))
+    result_queue.put((start_time, results, modify_count, search_count, modify_latencies, search_latencies))

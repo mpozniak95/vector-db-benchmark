@@ -179,15 +179,35 @@ class BaseClient:
     ):
 
         # Extract mixed workload parameters
-        insert_fraction = 0.0
+        modify_fraction = 0.0
+        modify_operation = "insert"  # "insert" or "update"
         seed = None
         if mixed_workload_params:
+            # Support both insert_fraction and update_fraction (mutually exclusive)
             insert_fraction = mixed_workload_params.get("insert_fraction", 0.0)
+            update_fraction = mixed_workload_params.get("update_fraction", 0.0)
+            
+            if insert_fraction > 0 and update_fraction > 0:
+                raise ValueError("Cannot specify both insert_fraction and update_fraction")
+            
+            if update_fraction > 0:
+                modify_fraction = update_fraction
+                modify_operation = "update"
+                # Validate that we have dataset_size for updates
+                if not dataset.config.vector_count or dataset.config.vector_count <= 0:
+                    raise ValueError(
+                        f"Cannot perform updates: dataset '{dataset.config.name}' does not have 'vector_count' configured. "
+                        "Updates require knowing the dataset size to pick valid existing keys."
+                    )
+            else:
+                modify_fraction = insert_fraction
+                modify_operation = "insert"
+            
             seed = mixed_workload_params.get("seed", None)
             if seed is not None:
                 random.seed(seed)  # Set seed for reproducible patterns
 
-            print(f"In run_experiment. insert_fraction: {insert_fraction} seed: {seed}" )
+            print(f"In run_experiment. modify_fraction: {modify_fraction} modify_operation: {modify_operation} seed: {seed}")
         results = {"upload": {}, "search": {}}
         execution_params = self.configurator.execution_params(
             distance=dataset.config.distance, vector_size=dataset.config.vector_size
@@ -286,7 +306,8 @@ class BaseClient:
                     )
 
                     search_stats = searcher.search_all(
-                        dataset.config.distance, reader.read_queries(), num_queries, insert_fraction
+                        dataset.config.distance, reader.read_queries(), num_queries, 
+                        modify_fraction, modify_operation, dataset.config.vector_count or 0
                     )
                     # ensure we specify the client count in the results
                     search_params["parallel"] = client_count

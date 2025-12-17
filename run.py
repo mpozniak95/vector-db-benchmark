@@ -81,7 +81,8 @@ def run(
     ef_runtime: List[int] = typer.Option([], help="Filter search experiments by ef runtime values. Only experiments with these ef values will be run."),
     describe: str = typer.Option(None, help="Describe available options: 'datasets' or 'engines'. When used, shows information and exits."),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Show detailed information when using --describe"),
-    insert_fraction: float = typer.Option(0.0, help="Fraction of operations that are inserts (0.0-1.0). Mixed workload is automatically enabled when > 0.0"),
+    insert_fraction: float = typer.Option(0.0, help="Fraction of operations that are inserts (0.0-1.0). Cannot be used with --update-fraction."),
+    update_fraction: float = typer.Option(0.0, help="Fraction of operations that are updates (0.0-1.0). Cannot be used with --insert-fraction."),
     mixed_workload_seed: int = typer.Option(None, help="Random seed for reproducible mixed workload patterns"),
 ):
     """
@@ -89,8 +90,11 @@ def run(
         # Use pattern matching to select engines (original behavior)
         python3 run.py --engines *-m-16-* --engines qdrant-* --datasets glove-*
         
-        # Mixed workload example
+        # Mixed workload with inserts
         python3 run.py --engines redis --datasets glove-* --insert-fraction 0.2
+        
+        # Mixed workload with updates
+        python3 run.py --engines redis --datasets glove-* --update-fraction 0.2
         
         # Use engines from a specific JSON file
         python3 run.py --engines-file my_engines.json --datasets glove-*
@@ -128,14 +132,25 @@ def run(
         if any(fnmatch.fnmatch(name, dataset) for dataset in datasets)
     }
 
+    # Validate mixed workload parameters
+    if insert_fraction > 0 and update_fraction > 0:
+        typer.echo("Error: Cannot use both --insert-fraction and --update-fraction at the same time.", err=True)
+        raise typer.Exit(1)
+
+    # Build mixed_params - only set if we have a non-zero fraction
     mixed_params = {}
-    # Automatically enable mixed workload when insert_fraction > 0
     if insert_fraction > 0:
         mixed_params = {
             "insert_fraction": insert_fraction,
             "seed": mixed_workload_seed
         }
-        print(f"Running mixed workload. insert_fraction: {insert_fraction} random_seed: {mixed_workload_seed}")
+        print(f"Running mixed workload with inserts. insert_fraction: {insert_fraction} seed: {mixed_workload_seed}")
+    elif update_fraction > 0:
+        mixed_params = {
+            "update_fraction": update_fraction,
+            "seed": mixed_workload_seed
+        }
+        print(f"Running mixed workload with updates. update_fraction: {update_fraction} seed: {mixed_workload_seed}")
 
     for engine_name, engine_config in selected_engines.items():
         for dataset_name, dataset_config in selected_datasets.items():

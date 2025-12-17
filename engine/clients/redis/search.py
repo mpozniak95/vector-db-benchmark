@@ -103,7 +103,17 @@ class RedisSearcher(BaseSearcher):
         return [(int(result.id), float(result.vector_score)) for result in results.docs]
 
     @classmethod
-    def insert_one(cls, doc_id: int, vector, meta_conditions):
+    def _hset_vector(cls, doc_id: str, vector, meta_conditions, is_update: bool = False):
+        """
+        Internal method to set a vector document using HSET.
+        Used by both insert_one and update_one for code reuse.
+        
+        Args:
+            doc_id: The document ID (as string)
+            vector: The vector data (bytes or array)
+            meta_conditions: Optional metadata
+            is_update: If True, this is an update to an existing key (no error if key exists)
+        """
         if cls.client is None:
             raise RuntimeError("Redis client not initialized")
 
@@ -140,17 +150,29 @@ class RedisSearcher(BaseSearcher):
 
         try:
             res = cls.client.hset(
-                str(doc_id),
+                doc_id,
                 mapping={
                     "vector": vec_param,
                     **payload,
                     **geopoints,
                 },
             )
-            if res == 0:
+            # For inserts, res=0 means no new fields were created (key already existed)
+            # For updates, res=0 is expected (we're updating existing fields)
+            if not is_update and res == 0:
                 print(f"ERROR: Redis hset did not create a new key for doc_id={doc_id}")
         except Exception as e:
             print(f"ERROR: Redis hset failed for doc_id={doc_id}: {e}")
+
+    @classmethod
+    def insert_one(cls, doc_id: str, vector, meta_conditions):
+        """Insert a new vector document."""
+        cls._hset_vector(doc_id, vector, meta_conditions, is_update=False)
+
+    @classmethod
+    def update_one(cls, doc_id: str, vector, meta_conditions):
+        """Update an existing vector document."""
+        cls._hset_vector(doc_id, vector, meta_conditions, is_update=True)
 
     @classmethod
     def wait_for_index_sync(cls, verbose=True):
