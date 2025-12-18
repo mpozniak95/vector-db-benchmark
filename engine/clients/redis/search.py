@@ -101,3 +101,125 @@ class RedisSearcher(BaseSearcher):
         results = cls._ft.search(q, query_params=params_dict)
 
         return [(int(result.id), float(result.vector_score)) for result in results.docs]
+
+    @classmethod
+    def _hset_vector(cls, doc_id: str, vector, meta_conditions, is_update: bool = False):
+        """
+        Internal method to set a vector document using HSET.
+        Used by both insert_one and update_one for code reuse.
+        
+        Args:
+            doc_id: The document ID (as string)
+            vector: The vector data (bytes or array)
+            meta_conditions: Optional metadata
+            is_update: If True, this is an update to an existing key (no error if key exists)
+        """
+        if cls.client is None:
+            raise RuntimeError("Redis client not initialized")
+
+        if not isinstance(vector, bytes):
+            vec_param = np.array(vector, dtype=cls.np_data_type).tobytes()
+        else:
+            vec_param = vector
+
+        # Process metadata exactly like upload_batch does
+        meta = meta_conditions if meta_conditions else {}
+        geopoints = {}
+        payload = {}
+        
+        if meta is not None:
+            for k, v in meta.items():
+                # This is a patch for arxiv-titles dataset where we have a list of "labels", and
+                # we want to index all of them under the same TAG field (whose separator is ';').
+                if k == "labels":
+                    payload[k] = ";".join(v)
+                if (
+                    v is not None
+                    and not isinstance(v, dict)
+                    and not isinstance(v, list)
+                ):
+                    payload[k] = v
+            # Redis treats geopoints differently and requires putting them as
+            # a comma-separated string with lat and lon coordinates
+            from engine.clients.redis.helper import convert_to_redis_coords
+            geopoints = {
+                k: ",".join(map(str, convert_to_redis_coords(v["lon"], v["lat"])))
+                for k, v in meta.items()
+                if isinstance(v, dict)
+            }
+
+        try:
+            res = cls.client.hset(
+                doc_id,
+                mapping={
+                    "vector": vec_param,
+                    **payload,
+                    **geopoints,
+                },
+            )
+            # For inserts, res=0 means no new fields were created (key already existed)
+            # For updates, res=0 is expected (we're updating existing fields)
+            if not is_update and res == 0:
+                print(f"ERROR: Redis hset did not create a new key for doc_id={doc_id}")
+        except Exception as e:
+            print(f"ERROR: Redis hset failed for doc_id={doc_id}: {e}")
+
+    @classmethod
+    def insert_one(cls, doc_id: str, vector, meta_conditions):
+        """Insert a new vector document."""
+        cls._hset_vector(doc_id, vector, meta_conditions, is_update=False)
+
+    @classmethod
+    def update_one(cls, doc_id: str, vector, meta_conditions):
+        """Update an existing vector document."""
+        cls._hset_vector(doc_id, vector, meta_conditions, is_update=True)
+
+    @classmethod
+    def wait_for_index_sync(cls, verbose=True):
+        """
+        Wait for all inserted documents to be fully indexed.
+        Similar to post_upload but for mixed workload inserts.
+        """
+        import time
+        
+        if cls.client is None:
+            raise RuntimeError("Redis client not initialized")
+        
+        if cls.algorithm != "HNSW" and cls.algorithm != "FLAT" and cls.algorithm != "SVS-VAMANA":
+            if verbose:
+                print(f"Skipping index sync for {cls.algorithm} (not supported)")
+            return
+        
+        try:
+            index_info = cls._ft.info()
+            
+            # Handle RedisSearch / Memorystore for Redis
+            if "percent_indexed" in index_info:
+                percent_indexed = float(index_info["percent_indexed"])
+                if verbose and percent_indexed < 1.0:
+                    print(f"Waiting for index sync: {percent_indexed * 100:.1f}% indexed", flush=True)
+                
+                while percent_indexed < 1.0:
+                    time.sleep(0.1)  # Check more frequently than post_upload
+                    index_info = cls._ft.info()
+                    percent_indexed = float(index_info["percent_indexed"])
+                    if verbose:
+                        print(f"Index sync: {percent_indexed * 100:.1f}% indexed", flush=True)
+            
+            # Handle MemoryDB
+            if "current_lag" in index_info:
+                current_lag = float(index_info["current_lag"])
+                if verbose and current_lag > 0:
+                    print(f"Waiting for index sync: current_lag={current_lag}", flush=True)
+                
+                while current_lag > 0:
+                    time.sleep(0.1)  # Check more frequently than post_upload
+                    index_info = cls._ft.info()
+                    current_lag = float(index_info["current_lag"])
+                    if verbose:
+                        print(f"Index sync: current_lag={current_lag}", flush=True)
+        
+        except Exception as e:
+            if verbose:
+                print(f"Warning: Could not check index sync status: {e}")
+

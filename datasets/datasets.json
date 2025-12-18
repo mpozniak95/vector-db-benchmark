@@ -60,6 +60,16 @@
     "description": "Image embeddings"
   },
   {
+    "name": "laion-img-emb-512-9M-cosine",
+    "vector_size": 512,
+    "vector_count": 9000000,
+    "distance": "cosine",
+    "type": "h5",
+    "path": "laion-img-emb-512/laion-img-emb-512-9M-angular-test-1M.hdf5",
+    "link": "http://benchmarks.redislabs.s3.amazonaws.com/vecsim/laion400m/laion-img-emb-512-10M-cosine.hdf5",
+    "description": "Image embeddings"
+  },
+  {
     "name": "laion-img-emb-512-10M-cosine",
     "vector_size": 512,
     "vector_count": 10000000,
@@ -1003,6 +1013,16 @@
     "description": "Knowledge embeddings"
   },
   {
+    "name": "dbpedia-openai-900K-1536-angular",
+    "vector_size": 1536,
+    "distance": "cosine",
+    "type": "h5",
+    "path": "dbpedia-openai-900-1536-angular/dbpedia-1536-900K-100K-testvectors.hdf5",
+    "link": "http://benchmarks.redislabs.s3.amazonaws.com/vecsim/dbpedia/dbpedia-openai-1M-text-embedding-3-large-1536d.hdf5",
+    "vector_count": 900000,
+    "description": "Knowledge embeddings"
+  },
+  {
     "name": "dbpedia-openai-1M-2048-angular",
     "vector_size": 2048,
     "distance": "cosine",
@@ -1356,5 +1376,42 @@
     "link": "https://dbyiw3u3rf9yr.cloudfront.net/corpora/vectorsearch/cohere-wikipedia-22-12-en-embeddings/documents-10m.hdf5.bz2",
     "vector_count": 10000000,
     "description": "Wikipedia embeddings"
+  },
+  {
+    "name": "cohere-768-900K-100K-testvectors",
+    "vector_size": 768,
+    "distance": "dot",
+    "type": "h5",
+    "path": "cohere-768-1M/cohere-768-900K-100K-testvectors.hdf5",
+    "vector_count": 900000,
+    "description": "Wikipedia embeddings"
+  },
+  {
+    "name": "cohere-768-900K-100K-testvectors-new",
+    "vector_size": 768,
+    "distance": "dot",
+    "type": "h5",
+    "path": "cohere-768-1M/cohere-768-900K-100K-testvectors-new.hdf5",
+    "vector_count": 900000,
+    "description": "Wikipedia embeddings"
+  },
+  {
+    "name": "cohere-768-9M-1000000-testvectors",
+    "vector_size": 768,
+    "distance": "dot",
+    "type": "h5",
+    "path": "cohere-768-9M/cohere-768-9M-1M-testvectors.hdf5",
+    "vector_count": 9000000,
+    "description": "Wikipedia embeddings"
+  },
+  {
+    "name": "dbpedia-openai-900K-1536-angular",
+    "vector_size": 1536,
+    "distance": "cosine",
+    "type": "h5",
+    "path": "dbpedia-openai-900K-1536-angular/dbpedia-1536-900K-100K-testvectors.hdf5",
+    "link": "http://benchmarks.redislabs.s3.amazonaws.com/vecsim/laion400m/dbpedia_openai_1M.tgz",
+    "vector_count": 900000,
+    "description": "Knowledge embeddings"
   }
 ]
