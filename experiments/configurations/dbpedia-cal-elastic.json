@@ -123,7 +123,7 @@
     }
   },
  {
-    "name": "dbpedia-cal-elasticsearch-hnsw-float32",
+    "name": "dbpedia-cal-elasticsearch-hnsw-float32-m32e200",
     "engine": "elasticsearch",
     "connection_params": {
       "request_timeout": 10000
