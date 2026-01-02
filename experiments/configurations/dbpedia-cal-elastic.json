@@ -189,7 +189,7 @@
         "parallel": 100,
         "top": 10,
         "calibration_param": "num_candidates",
-        "calibration_precision": 0.99,
+        "calibration_precision": 0.95,
         "search_params": {
           "data_type": "FLOAT32"
         }
@@ -198,7 +198,7 @@
         "parallel": 10,
         "top": 10,
         "calibration_param": "num_candidates",
-        "calibration_precision": 0.99,
+        "calibration_precision": 0.95,
         "search_params": {
           "data_type": "FLOAT32"
         }
@@ -207,7 +207,7 @@
         "parallel": 1,
         "top": 10,
         "calibration_param": "num_candidates",
-        "calibration_precision": 0.99,
+        "calibration_precision": 0.95,
         "search_params": {
           "data_type": "FLOAT32"
         }
