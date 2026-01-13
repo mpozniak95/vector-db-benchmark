@@ -57,6 +57,54 @@
         "calibration_precision": 0.95,
         "search_params": {
         }
+      },
+      {
+        "parallel": 1,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.9,
+        "search_params": {
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.9,
+        "search_params": {
+        }
+      },
+      {
+        "parallel": 100,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.9,
+        "search_params": {
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+        }
+      },
+      {
+        "parallel": 100,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+        }
       }
     ],
     "upload_params": { "parallel": 32 }
@@ -125,6 +173,293 @@
         "calibration_precision": 0.95,
         "search_params": {
           "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.9,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.9,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 100,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.9,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 100,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      }
+    ],
+    "upload_params": { "parallel": 32 }
+  },
+  {
+    "name": "dbpedia-cal-qdrant-hnsw-float16-m32-ef200",
+    "engine": "qdrant",
+    "connection_params": {},
+    "collection_params": {
+        "hnsw_config": {
+            "m": 32,
+            "ef_construct": 200
+        },
+        "data_type": "FLOAT16"
+    },
+    "search_params": [
+      {
+        "parallel": 1,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 100,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 100,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 100,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      },
+      {
+        "parallel": 100,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+          "data_type": "FLOAT16"
+        }
+      }
+    ],
+    "upload_params": { "parallel": 32 }
+  },
+  {
+    "name": "dbpedia-cal-qdrant-hnsw-float32-m32-ef200",
+    "engine": "qdrant",
+    "connection_params": {},
+    "collection_params": {
+        "hnsw_config": {
+            "m": 32,
+            "ef_construct": 200
+        }
+    },
+    "search_params": [
+      {
+        "parallel": 1,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+        }
+      },
+      {
+        "parallel": 100,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+        }
+      },
+      {
+        "parallel": 100,
+        "top": 100,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+        }
+      },
+      {
+        "parallel": 100,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.95,
+        "search_params": {
+        }
+      },
+      {
+        "parallel": 1,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+        }
+      },
+      {
+        "parallel": 10,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
+        }
+      },
+      {
+        "parallel": 100,
+        "top": 10,
+        "calibration_param": "hnsw_ef",
+        "calibration_precision": 0.99,
+        "search_params": {
         }
       }
     ],
