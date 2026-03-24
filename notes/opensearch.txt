@@ -1,0 +1,30 @@
+sudo apt-get update
+sudo apt-get -y install lsb-release ca-certificates curl gnupg2
+
+curl -SLO https://artifacts.opensearch.org/releases/bundle/opensearch/3.3.2/opensearch-3.3.2-linux-x64.deb
+sudo env OPENSEARCH_INITIAL_ADMIN_PASSWORD="Bench*Pas0" dpkg -i opensearch-3.3.2-linux-x64.deb
+sudo systemctl enable opensearch
+sudo systemctl start opensearch
+sudo systemctl status opensearch
+
+Ustawienie poza localhost:
+nano /etc/opensearch/opensearch.yml
+network.host: 0.0.0.0
+discovery.type: single-node
+plugins.security.disabled: true
+plugins.security.ssl.http.enabled: false 
+
+
+Przy takich samych parametrach M i EF_construction jak w pozostałych nie jestem w stanie uzyskać 95% precyzji
+
+Coś dziwnego się dzieje, niby jest index = green ale pierwsze dwa runy mająprecyzje 97% a potem spada ...
+
+
+
+
+
+
+curl -X PUT "https://localhost:9200/bench/_settings" \ -u 'admin:Bench*Pas0' \ -H 'Content-Type: application/json' \ -k \ -d '{ "index.merge.scheduler.max_thread_count": 4 }'
+
+M=32
+EF_con=128 za duże na 0.95

@@ -1,0 +1,58 @@
+sudo apt update
+sudo apt install -y build-essential curl git cmake pkg-config \
+    protobuf-compiler libprotobuf-dev libssl-dev clang llvm \
+    liblz4-dev libsnappy-dev libzstd-dev zlib1g-dev
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+source $HOME/.cargo/env
+
+# upewnij się, że masz najnowszy stable toolchain
+rustup default stable
+rustup update
+cd ~/src || mkdir -p ~/src && cd ~/src
+git clone https://github.com/qdrant/qdrant.git
+cd qdrant
+git checkout v1.15.5
+sudo apt remove -y protobuf-compiler
+apt install zip -y
+
+PROTOC_ZIP=protoc-25.3-linux-x86_64.zip
+curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v25.3/$PROTOC_ZIP
+sudo unzip -o $PROTOC_ZIP -d /usr/local bin/protoc
+sudo unzip -o $PROTOC_ZIP -d /usr/local 'include/*'
+rm $PROTOC_ZIP
+# w katalogu repo (gdzie jest Cargo.toml)
+cargo build --release --bin qdrant
+
+
+Dla arm:
+PROTOC_ZIP=protoc-25.3-linux-aarch_64.zip
+curl -OL https://github.com/protocolbuffers/protobuf/releases/download/v25.3/$PROTOC_ZIP
+
+sudo unzip -o $PROTOC_ZIP -d /usr/local bin/protoc
+sudo unzip -o $PROTOC_ZIP -d /usr/local 'include/*'
+
+rm $PROTOC_ZIP
+
+# w katalogu repo (gdzie jest Cargo.toml)
+cargo build --release --bin qdrant
+
+./target/release/qdrant --config-path config.yml
+
+
+Config.yml
+service:
+  host: 0.0.0.0
+  port: 6333
+  grpc_port: 6334
+storage:
+  optimizers:
+    # Target amount of segments optimizer will try to keep.
+    # Real amount of segments may vary depending on multiple parameters:
+    #  - Amount of stored points
+    #  - Current write RPS
+    #
+    # It is recommended to select default number of segments as a factor of the number of search threads,
+    # so that each segment would be handled evenly by one of the threads.
+    # If `default_segment_number = 0`, will be automatically selected by the number of available CPUs
+    default_segment_number: 1
+    max_segment_size_kb: 20971520

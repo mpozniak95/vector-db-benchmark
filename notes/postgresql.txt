@@ -1,0 +1,91 @@
+# Dodanie oficjalnego repozytorium PostgreSQL
+sudo apt update
+sudo apt install wget ca-certificates -y
+wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+echo "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+
+# Instalacja PostgreSQL 17
+sudo apt update
+sudo apt install postgresql-17 postgresql-client-17 postgresql-contrib-17 postgresql-server-dev-17 -y
+
+# Instalacja narzędzi kompilacji
+sudo apt install git build-essential -y
+
+# Klonowanie i instalacja pgvector
+git clone --branch v0.8.0 https://github.com/pgvector/pgvector.git
+
+cd pgvector
+make PG_CONFIG=/usr/lib/postgresql/17/bin/pg_config
+sudo make install PG_CONFIG=/usr/lib/postgresql/17/bin/pg_config
+
+#-- Logowanie jako postgres
+sudo -u postgres psql
+
+#-- Utworzenie bazy danych
+CREATE DATABASE vectordb;
+
+#-- Połączenie z bazą
+\c vectordb
+
+#-- Włączenie rozszerzenia pgvector
+CREATE EXTENSION vector;
+
+
+sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'passwd';"
+
+
+
+
+# Ustawienie postgresql do przyjmowania połączeń spoza localhosta
+nano /etc/postgresql/17/main/pg_hba.conf
+# Allow connections from anywhere (UWAGA: tylko do testów!)
+host    all             all             0.0.0.0/0               md5
+
+
+#Configuration:
+
+#Xlarge:
+max_connections = 250
+shared_buffers = 8GB
+effective_cache_size = 23040MB
+maintenance_work_mem = 1920MB
+checkpoint_completion_target = 0.9
+wal_buffers = 16MB
+default_statistics_target = 100
+random_page_cost = 1.1
+effective_io_concurrency = 200
+work_mem = 37809kB
+huge_pages = off
+min_wal_size = 1GB
+max_wal_size = 4GB
+max_worker_processes = 4
+max_parallel_workers_per_gather = 2
+max_parallel_workers = 4
+max_parallel_maintenance_workers = 2
+
+
+
+#2xlarge:
+max_connections = 250
+shared_buffers = 16GB
+effective_cache_size = 46080MB
+maintenance_work_mem = 3840MB
+checkpoint_completion_target = 0.9
+wal_buffers = 32MB
+default_statistics_target = 100
+random_page_cost = 1.1
+effective_io_concurrency = 200
+work_mem = 75618kB
+huge_pages = off
+min_wal_size = 2GB
+max_wal_size = 8GB
+max_worker_processes = 8
+max_parallel_workers_per_gather = 4
+max_parallel_workers = 8
+max_parallel_maintenance_workers = 4
+
+#Cleanup
+sudo -u postgres psql -c "DROP DATABASE vectordb;"
+sudo -u postgres psql -c "CREATE DATABASE vectordb;"
+sudo -u postgres psql -d "vectordb" -c "CREATE EXTENSION vector;"
+sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'passwd';"

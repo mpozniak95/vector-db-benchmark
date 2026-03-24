@@ -1,0 +1,9 @@
+# Odpalenie benchmarku na przykładzie elasticsearch:
+python3 -m venv venv
+source venv/bin/activate
+pip install poetry
+git clone https://github.com/mpozniak95/vector-db-benchmark.git
+cd vector-db-benchmark
+git checkout competetive-analysis
+poetry install --no-root .
+REPETITIONS=5 python run.py --host $elastic_intel_2xlarge --datasets dbpedia-openai-1M-1536-angular --queries 100000 --engines-file experiments/configurations/dbpedia-cal-elastic.json

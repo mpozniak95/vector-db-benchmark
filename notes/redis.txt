@@ -1,0 +1,11 @@
+# Instalacja z ręczną kompilacją
+git clone http://github.com/redis/redis.git
+cd redis
+apt-get update
+apt-get install -y sudo
+sudo apt-get install -y --no-install-recommends ca-certificates wget dpkg-dev gcc g++ libc6-dev libssl-dev make git python3 python3-pip python3-venv python3-dev unzip rsync clang automake autoconf gcc-10 g++-10 libtool
+pip3 install cmake==3.31.6
+sudo ln -sf /usr/local/bin/cmake /usr/bin/cmake
+cmake --version
+export BUILD_TLS=yes BUILD_WITH_MODULES=yes INSTALL_RUST_TOOLCHAIN=yes DISABLE_WERRORS=yes
+make -j "$(nproc)" all

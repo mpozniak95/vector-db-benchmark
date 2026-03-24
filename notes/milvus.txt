@@ -1,0 +1,27 @@
+# Instalacja milvusa bez dockera
+sudo apt update                                                                                                                              
+sudo apt install -y etcd
+sudo systemctl enable etcd
+sudo systemctl start etcd
+wget https://dl.min.io/server/minio/release/linux-amd64/archive/minio_20240118225128.0.0_amd64.deb -O minio.deb
+sudo dpkg -i minio.deb
+sudo mkdir -p /mnt/minio
+sudo chown $USER:$USER /mnt/minio
+MINIO_ROOT_USER=minioadmin MINIO_ROOT_PASSWORD=minioadmin minio server /mnt/minio --address ":9000" --console-address ":9001" &
+wget https://github.com/milvus-io/milvus/archive/refs/tags/v2.6.11.tar.gz
+tar -xvf v2.6.11.tar.gz
+cd milvus-2.6.11/
+wget https://raw.githubusercontent.com/milvus-io/milvus/master/configs/milvus.yaml
+nano milvus.yaml
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/lib
+sudo apt install -y g++ gcc make cmake git curl wget zip unzip tar perl python3-pip libssl-dev libcurl4-openssl-dev libboost-all-dev
+wget https://go.dev/dl/go1.21.10.linux-amd64.tar.gz
+sudo tar -C /usr/local -xzf go1.21.10.linux-amd64.tar.gz
+export PATH=$PATH:/usr/local/go/bin
+./scripts/install_deps.sh
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+source $HOME/.cargo/env
+cargo --version
+make -j "$(nproc)" milvus
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/internal/core/output/lib
+./bin/milvus run standalone
