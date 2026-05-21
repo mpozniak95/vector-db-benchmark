@@ -1396,7 +1396,7 @@
     "description": "Wikipedia embeddings"
   },
   {
-    "name": "cohere-768-9M-1000000-testvectors",
+    "name": "cohere-768-9M-1M-testvectors",
     "vector_size": 768,
     "distance": "dot",
     "type": "h5",
