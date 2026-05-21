@@ -1,0 +1,62 @@
+[
+  {
+    "name": "cohere-hnsw-float16",
+    "engine": "redis",
+    "connection_params": {},
+    "collection_params": {
+      "algorithm": "hnsw",
+      "data_type": "FLOAT16",
+      "hnsw_config": {
+        "M": 32,
+        "DISTANCE_METRIC": "IP",
+        "EF_CONSTRUCTION": 200
+      }
+    },
+    "search_params": [
+      {
+        "parallel": 100,
+        "top": 100,
+        "search_params": {
+	  "ef": 318,
+          "data_type": "FLOAT16"
+        }
+      }
+    ],
+    "upload_params": {
+      "parallel": 100,
+      "algorithm": "hnsw",
+      "data_type": "FLOAT16"
+    }
+  },
+  {
+    "name": "cohere-svs-LeanVec4x8-float16",
+    "engine": "redis",
+    "connection_params": {},
+    "collection_params": {
+      "algorithm": "svs-vamana",
+      "data_type": "FLOAT16",
+      "svs-vamana_config": {
+        "DISTANCE_METRIC": "IP",
+        "GRAPH_MAX_DEGREE": 64,
+        "CONSTRUCTION_WINDOW_SIZE": 200,
+        "compression": "LeanVec4x8"
+      }
+    },
+    "search_params": [
+      {
+        "algorithm": "svs-vamana",
+        "parallel": 100,
+        "top": 100,
+        "search_params": {
+	  "SEARCH_WINDOW_SIZE": 333,
+          "data_type": "FLOAT16"
+        }
+      }
+    ],
+    "upload_params": {
+      "parallel": 100,
+      "data_type": "FLOAT16",
+      "algorithm": "svs-vamana"
+    }
+  }
+]
