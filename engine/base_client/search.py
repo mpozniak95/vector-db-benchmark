@@ -246,6 +246,15 @@ class BaseSearcher:
         overall_search_count = 0
         overall_modify_latencies = []
         overall_search_latencies = []
+
+        # Track the doc_id ranges we insert so we can delete exactly those keys at
+        # the end of this run. Inserts advance the counter contiguously, so a worker
+        # starting at `offset` that performs N inserts creates keys [offset, offset+N).
+        # Deleting them prevents the next repetition/searcher (which restarts the
+        # offset at 1000000000) from colliding with keys this run created, and keeps
+        # every repetition measuring the same index state. Only populated for inserts;
+        # updates reuse existing dataset keys and must not be deleted.
+        overall_inserted_ranges = []
         
         # Interval statistics for output file
         interval_stats = []
@@ -290,6 +299,13 @@ class BaseSearcher:
                         interval_search_latencies.append(latency)
                         interval_results.append(('search', precision, latency))
 
+                # Record the contiguous doc_id range inserted in this interval so we
+                # can delete exactly these keys after the run (inserts only).
+                if modify_label == "insert" and interval_modify_count > 0:
+                    overall_inserted_ranges.append(
+                        (global_doc_id_offset, global_doc_id_offset + interval_modify_count)
+                    )
+
                 interval_time = time.perf_counter() - interval_start
             else:
                 # Parallel execution for this interval
@@ -324,13 +340,18 @@ class BaseSearcher:
                 min_start_time = time.perf_counter()
 
                 for _ in processes:
-                    proc_start_time, chunk_results, modify_count, search_count, modify_latencies, search_latencies = result_queue.get()
+                    proc_start_time, chunk_results, modify_count, search_count, modify_latencies, search_latencies, worker_offset = result_queue.get()
                     interval_results.extend(chunk_results)
                     interval_modify_count += modify_count
                     interval_search_count += search_count
                     interval_modify_latencies.extend(modify_latencies)
                     interval_search_latencies.extend(search_latencies)
-                    
+
+                    # Record the contiguous doc_id range this worker inserted so we
+                    # can delete exactly these keys after the run (inserts only).
+                    if modify_label == "insert" and modify_count > 0:
+                        overall_inserted_ranges.append((worker_offset, worker_offset + modify_count))
+
                     # Update min_start_time if necessary
                     if proc_start_time < min_start_time:
                         min_start_time = proc_start_time
@@ -472,6 +493,17 @@ class BaseSearcher:
             all_modify_latencies if all_modify_latencies else None
         )
 
+        # Delete the keys inserted during this run so the next repetition/searcher
+        # starts from the same index state and its inserts (which restart the doc_id
+        # offset at 1000000000) don't collide with keys created here. No-op for
+        # search-only or update workloads (overall_inserted_ranges stays empty).
+        if overall_inserted_ranges:
+            try:
+                deleted = self.__class__.delete_inserted_keys(overall_inserted_ranges)
+                print(f"Cleaned up {deleted} inserted keys after run")
+            except Exception as e:
+                print(f"Warning: Failed to delete inserted keys after run: {e}")
+
         self.__class__.delete_client()
 
 
@@ -535,6 +567,18 @@ class BaseSearcher:
     def delete_client(cls):
         pass
 
+    @classmethod
+    def delete_inserted_keys(cls, ranges):
+        """
+        Delete keys created by inserts during a mixed-workload run.
+
+        `ranges` is a list of (start, end) tuples; each covers the contiguous
+        doc_ids [start, end) a worker/interval inserted (keyed as str(doc_id)).
+        Default implementation is a no-op; override in engine-specific clients.
+        Returns the number of keys deleted.
+        """
+        return 0
+
 
 def chunked_iterable(iterable, size):
     """Yield successive chunks of a given size from an iterable."""
@@ -580,4 +624,6 @@ def worker_function(self, distance, search_one, modify_one, chunk, result_queue,
     results, modify_count, search_count, modify_latencies, search_latencies = process_chunk(
         chunk, search_one, modify_one, modify_fraction, modify_label
     )
-    result_queue.put((start_time, results, modify_count, search_count, modify_latencies, search_latencies))
+    # Return this worker's insert base offset so the parent can reconstruct the
+    # contiguous [offset, offset+modify_count) range of keys it created.
+    result_queue.put((start_time, results, modify_count, search_count, modify_latencies, search_latencies, doc_id_offset))

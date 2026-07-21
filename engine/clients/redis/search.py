@@ -175,6 +175,47 @@ class RedisSearcher(BaseSearcher):
         cls._hset_vector(doc_id, vector, meta_conditions, is_update=True)
 
     @classmethod
+    def delete_inserted_keys(cls, ranges):
+        """
+        Delete the keys created by inserts during a mixed-workload run.
+
+        `ranges` is a list of (start, end) tuples covering the contiguous doc_ids
+        [start, end) that were inserted (keyed as str(doc_id)). We delete exactly
+        those keys — no keyspace scan — so nothing from the originally uploaded
+        dataset is touched. Deletes are batched into pipelines to limit round-trips.
+        """
+        if cls.client is None:
+            raise RuntimeError("Redis client not initialized")
+
+        BATCH = 1000
+        deleted = 0
+        batch = []
+
+        def flush(keys):
+            if not keys:
+                return 0
+            # DEL of many keys can span slots on a cluster; delete one-by-one there,
+            # otherwise use a pipeline for throughput.
+            if getattr(cls, "_is_cluster", False):
+                n = 0
+                for k in keys:
+                    n += cls.client.delete(k)
+                return n
+            pipe = cls.client.pipeline(transaction=False)
+            for k in keys:
+                pipe.delete(k)
+            return sum(pipe.execute())
+
+        for start, end in ranges:
+            for doc_id in range(start, end):
+                batch.append(str(doc_id))
+                if len(batch) >= BATCH:
+                    deleted += flush(batch)
+                    batch = []
+        deleted += flush(batch)
+        return deleted
+
+    @classmethod
     def wait_for_index_sync(cls, verbose=True):
         """
         Wait for all inserted documents to be fully indexed.
